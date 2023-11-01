@@ -1,5 +1,30 @@
 #include "Utils.h"
 
+Player::Player(DWORD procId, uintptr_t moduleBase, HANDLE hProcess) {
+	this->moduleBase = moduleBase; this->processid = procId;
+	this->hprocess = hProcess; this->entityAddr = moduleBase + 0x10F4F4;
+	ReadProcessMemory(hProcess, (LPVOID)(entityAddr), &this->entityPtr, sizeof(this->entityPtr), 0);
+	this->updatePlayer();
+}
+
+void Player::updatePlayer() {
+	health = findDMAAddy(hprocess, entityAddr, {0xF8});
+	armour = findDMAAddy(hprocess, entityAddr, { 0xFC });
+}
+
+void Player::setArmour( int value ) {
+	WriteProcessMemory(hprocess, (BYTE*)(entityPtr + 0xFC), &value, sizeof(value), nullptr);
+}
+
+void Player::setHealth(int value) {
+	WriteProcessMemory(hprocess, (BYTE*)(entityPtr + 0xF8), &value, sizeof(value), nullptr);
+}
+
+
+int Player::getPlayerHealth() { return this->health; }
+int Player::getPlayerArmour() { return this->armour; }
+
+/* taken from the guidedhacking bible  */
 DWORD GetProcId(const wchar_t* procName) {
 	DWORD procId = 0;
 	HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
@@ -20,7 +45,7 @@ DWORD GetProcId(const wchar_t* procName) {
 }
 
 
-uintptr_t GetModuleBaseAddress(DWORD procId, wchar_t* modName) {
+uintptr_t GetModuleBaseAddress(DWORD procId, const wchar_t* modName) {
 	uintptr_t modBaseAddr = 0;
 	HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, procId);
 
@@ -38,4 +63,13 @@ uintptr_t GetModuleBaseAddress(DWORD procId, wchar_t* modName) {
 	}
 	CloseHandle(hSnap);
 	return modBaseAddr;
+}
+
+uintptr_t findDMAAddy(HANDLE hProc, uintptr_t ptr, std::vector<unsigned int> offsets) {
+	uintptr_t addr;
+	ReadProcessMemory(hProc, (LPVOID)ptr, &addr, sizeof(addr), 0);
+	for (int i = 0; i < offsets.size(); i++) {
+		ReadProcessMemory(hProc, (LPVOID)(addr + offsets[i]), &addr, sizeof(addr), 0);
+	}
+	return addr;
 }
