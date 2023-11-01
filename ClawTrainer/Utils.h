@@ -12,20 +12,23 @@ private:
 	DWORD processid;
 	HANDLE hprocess;
 	uintptr_t moduleBase;
-	int health;
-	int rifleMag;
-	int rifleAmmo;
-	int pistolMag;
-	int pistolAmmo;
+	int health;	int armour;
+	int rifleMag; int rifleAmmo;
+	int pistolMag; int pistolAmmo;
 	float position[3];
-	int armour;
 public:
 	Player(DWORD, uintptr_t, HANDLE);
 	void updatePlayer();
 	void setHealth(int);
 	void setArmour(int);
+	void setCurrentWeaponAmmo(int);
 	int getPlayerHealth();
 	int getPlayerArmour();
+};
+
+namespace mem {
+	void PatchEx(BYTE* dst, BYTE* src, unsigned int, HANDLE);
+	void NopEx(BYTE* dst, unsigned int, HANDLE);
 };
 
 DWORD GetProcId(const wchar_t* procName);

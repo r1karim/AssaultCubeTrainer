@@ -8,8 +8,8 @@ Player::Player(DWORD procId, uintptr_t moduleBase, HANDLE hProcess) {
 }
 
 void Player::updatePlayer() {
-	health = findDMAAddy(hprocess, entityAddr, {0xF8});
-	armour = findDMAAddy(hprocess, entityAddr, { 0xFC });
+	health = findDMAAddy(hprocess, entityAddr, {0xF8, 0x0});
+	armour = findDMAAddy(hprocess, entityAddr, { 0xFC, 0x0 });
 }
 
 void Player::setArmour( int value ) {
@@ -20,11 +20,34 @@ void Player::setHealth(int value) {
 	WriteProcessMemory(hprocess, (BYTE*)(entityPtr + 0xF8), &value, sizeof(value), nullptr);
 }
 
+void Player::setCurrentWeaponAmmo(int value) {
+	WriteProcessMemory(
+		hprocess,
+		(BYTE*)findDMAAddy(hprocess, entityAddr, { 0x374, 0x14, 0x0 }),
+		&value,
+		sizeof(value),
+		nullptr
+	);
+}
+
 
 int Player::getPlayerHealth() { return this->health; }
 int Player::getPlayerArmour() { return this->armour; }
 
-/* taken from the guidedhacking bible  */
+void mem::PatchEx(BYTE* dst, BYTE* src, unsigned int size, HANDLE hProcess) {
+	DWORD oldprotect;
+	VirtualProtectEx(hProcess, dst, size, PAGE_EXECUTE_READWRITE, &oldprotect);
+	WriteProcessMemory(hProcess, dst, src, size, nullptr);
+	VirtualProtectEx(hProcess, dst, size, oldprotect, &oldprotect);
+}
+
+void mem::NopEx(BYTE* dst, unsigned int size, HANDLE hProcess) {
+	BYTE* nopArr = new BYTE[size];
+	memset(nopArr, 0x90, size);
+	mem::PatchEx(dst, nopArr, size, hProcess);
+	delete[] nopArr;
+}
+
 DWORD GetProcId(const wchar_t* procName) {
 	DWORD procId = 0;
 	HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
@@ -66,10 +89,10 @@ uintptr_t GetModuleBaseAddress(DWORD procId, const wchar_t* modName) {
 }
 
 uintptr_t findDMAAddy(HANDLE hProc, uintptr_t ptr, std::vector<unsigned int> offsets) {
-	uintptr_t addr;
-	ReadProcessMemory(hProc, (LPVOID)ptr, &addr, sizeof(addr), 0);
+	uintptr_t addr = ptr;
 	for (int i = 0; i < offsets.size(); i++) {
-		ReadProcessMemory(hProc, (LPVOID)(addr + offsets[i]), &addr, sizeof(addr), 0);
+		ReadProcessMemory(hProc, (LPVOID)addr, &addr, sizeof(addr), 0);
+		addr += offsets[i];
 	}
 	return addr;
 }
