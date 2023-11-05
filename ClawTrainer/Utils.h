@@ -4,6 +4,18 @@
 #include<Windows.h>
 #include<TlHelp32.h>
 #include<vector>
+#include <string>
+#include <iostream>
+class Enemy {
+private:
+	int Id, health; HANDLE hProcess; std::string name;
+	float position[3]; uintptr_t modBase;
+public:
+	Enemy(HANDLE, uintptr_t);
+	void getStats();
+	int getHealth();
+	std::string getName();
+};
 
 class Player {
 private:

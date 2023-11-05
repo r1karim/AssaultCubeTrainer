@@ -1,5 +1,27 @@
 #include "Utils.h"
 
+void Enemy::getStats() {
+	uintptr_t baseAddr = modBase + 0x10F4F8;
+	this->health = findDMAAddy(hProcess, baseAddr, {0x10, 0xF8, 0x0});
+	uintptr_t nameptr = findDMAAddy(hProcess, baseAddr, { 0x10, 0x225,0x0});
+	ReadProcessMemory(hProcess, (LPVOID)nameptr, &this->name, sizeof(std::string),0);
+	//for (int i = 0; i < 5; i++) { std::cout << *nameptr; nameptr++; }
+	std::cout << this->name;
+}
+
+Enemy::Enemy(HANDLE hProcess, uintptr_t modBase) {
+	this-> hProcess = hProcess;
+	this->modBase = modBase;
+}
+
+int Enemy::getHealth() {
+	return this->health;
+}
+
+std::string Enemy::getName() {
+	return this->name;
+}
+
 Player::Player(DWORD procId, uintptr_t moduleBase, HANDLE hProcess) {
 	this->moduleBase = moduleBase; this->processid = procId;
 	this->hprocess = hProcess; this->entityAddr = moduleBase + 0x10F4F4;

@@ -12,27 +12,33 @@ int main() {
 	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, 0, ProcessId);
 
 	Player player(ProcessId, modBaseAddr, hProcess);
+	Enemy test(hProcess, modBaseAddr);
+	//Enemy Array[8];
 
 	player.setHealth(501);
 	player.setArmour(69);
 	player.setCurrentWeaponAmmo(69);
 	std::cout << "Player health: " << player.getPlayerHealth() << std::endl;
-
+	// {1100f8+0+0} {110D90+4+5} {1100f8+30+0}
 	DWORD dwExit = 0;
 	
 	while (GetExitCodeProcess(hProcess, &dwExit) && dwExit == STILL_ACTIVE) {
 		if (GetAsyncKeyState(VK_NUMPAD1) & 1) {
 			bHealth = !bHealth;
 			if (bHealth) {
-				mem::PatchEx((BYTE*)(modBaseAddr + 0x29D1F), (BYTE*)"\x01", 1, hProcess);
+				mem::PatchEx((BYTE*)(modBaseAddr + 0x29D1F), (BYTE*)"\x01", 1, hProcess); //5130944 scan for this value!!!!
 				std::cout << "Health hack enabled" << std::endl;
+				test.getStats();
+
+				std::cout << test.getName() << std::endl;
+
 			}
 			else {
 				mem::PatchEx((BYTE*)(modBaseAddr + 0x29D1F), (BYTE*)"\x29", 1, hProcess);
 				std::cout << "Health hack disabled" << std::endl;
 			}
 		}
-		if (GetAsyncKeyState(VK_NUMPAD2) & 1 ) {
+		if (GetAsyncKeyState(VK_NUMPAD2) & 1 ) { // 60HEX 2C0 320 830HEX C60HEX 430
 			bAmmo = !bAmmo;
 			if (bAmmo) {
 				mem::NopEx((BYTE*)(modBaseAddr + 0x637E9), 2, hProcess);//FF 0E
