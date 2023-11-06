@@ -6,12 +6,16 @@
 #include<vector>
 #include <string>
 #include <iostream>
+#include <math.h>
+
 class Enemy {
 private:
-	int Id, health; HANDLE hProcess; std::string name;
-	float position[3]; uintptr_t modBase;
+	int id, health; HANDLE hProcess; std::string name;
+	uintptr_t enemyBase; 
 public:
-	Enemy(HANDLE, uintptr_t);
+	float position[3] = { 0,0,0 }; float distance;
+	Enemy(HANDLE, uintptr_t, unsigned int);
+	Enemy();
 	void getStats();
 	int getHealth();
 	std::string getName();
@@ -27,8 +31,9 @@ private:
 	int health;	int armour;
 	int rifleMag; int rifleAmmo;
 	int pistolMag; int pistolAmmo;
-	float position[3];
 public:
+	float position[3];
+
 	Player(DWORD, uintptr_t, HANDLE);
 	void updatePlayer();
 	void setHealth(int);
@@ -36,6 +41,7 @@ public:
 	void setCurrentWeaponAmmo(int);
 	int getPlayerHealth();
 	int getPlayerArmour();
+	void setViewAngle(float x, float y);
 };
 
 namespace mem {
@@ -46,5 +52,8 @@ namespace mem {
 DWORD GetProcId(const wchar_t* procName);
 uintptr_t GetModuleBaseAddress(DWORD procId, const wchar_t* modName);
 uintptr_t findDMAAddy(HANDLE hProc, uintptr_t ptr, std::vector<unsigned int> offsets);
+void CalcAngle(float* src, float* dst, float* angle);
+
+float distance3d(float position1[3], float position2[3]);
 
 #endif

@@ -5,15 +5,20 @@
 
 int main() {
 	DWORD ProcessId = GetProcId(L"ac_client.exe");
-	bool bHealth=false, bAmmo = false, bRecoil = false;
+	bool bHealth=false, bAmmo = false, bRecoil = false, bAimbot=false;
 	
 	if (!ProcessId) { std::cout << "Process not found" << std::endl;  abort(); }
 	uintptr_t modBaseAddr = GetModuleBaseAddress(ProcessId, L"ac_client.exe");
 	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, 0, ProcessId);
 
 	Player player(ProcessId, modBaseAddr, hProcess);
-	Enemy test(hProcess, modBaseAddr);
-	//Enemy Array[8];
+	//Enemy test(hProcess, modBaseAddr, 3);
+	Enemy* Array = new Enemy[15];
+
+	for (unsigned int i = 0; i < 15; i++) {
+		Array[i] =  Enemy(hProcess, modBaseAddr, i);
+	}
+
 
 	player.setHealth(501);
 	player.setArmour(69);
@@ -28,9 +33,9 @@ int main() {
 			if (bHealth) {
 				mem::PatchEx((BYTE*)(modBaseAddr + 0x29D1F), (BYTE*)"\x01", 1, hProcess); //5130944 scan for this value!!!!
 				std::cout << "Health hack enabled" << std::endl;
-				test.getStats();
+				Array[0].getStats();
 
-				std::cout << test.getName() << std::endl;
+				std::cout << Array[0].getHealth() << std::endl;
 
 			}
 			else {
@@ -62,10 +67,32 @@ int main() {
 
 			}
 		}
+		if (GetAsyncKeyState(VK_NUMPAD4) & 1) {
+			bAimbot = !bAimbot;
+		}
 		if (GetAsyncKeyState(VK_INSERT) & 1) {
 			return 0;
 		}
+		player.updatePlayer();
+		if (bAimbot) {
+			int smallestdistance;
+			for (unsigned int i = 0; i < 15; i++) {
+				Array[i].getStats();
+				Array[i].distance = distance3d(player.position, Array[i].position);	
+				//std::cout << Array[i].getHealth() << " " << i << std::endl;
+				if (i == 0 || ( Array[i].distance < Array[smallestdistance].distance && Array[i].getHealth() > 0 && Array[i].getHealth() <= 100)) {
+					smallestdistance = i;
+				}
+			}
+			float arr[3];
+			CalcAngle(player.position, Array[0].position, arr);
+			std::cout << smallestdistance << " SMALLEST DISTANCE" << std::endl;
+			//std::cout << Array[0].position[0] << " " << Array[0].position[1] << " " << Array[0].position[2] << std::endl;
+			//player.setViewAngle(arr[0], arr[1]);
+			player.setViewAngle(90, 90);
+		}
 	}
 
+	
 	return 0;
 }
