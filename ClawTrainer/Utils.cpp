@@ -6,9 +6,9 @@ void Enemy::getStats() {
 	//uintptr_t enemyBase = findDMAAddy(hProcess, baseAddr, { 0x10 });
 	health = findDMAAddy(hProcess, enemyBase, {0xF8, 0x0});
 	ReadProcessMemory(hProcess, (LPVOID)findDMAAddy(hProcess, enemyBase, { 0x225,0x0 }) , &pname, 12, NULL); name = pname; //
-	position[0] = (float)findDMAAddy(hProcess, enemyBase, { 0x34,0x0 });
-	position[1] = (float)findDMAAddy(hProcess, enemyBase, { 0x34 + 0x4,0x0 });
-	position[2] = (float)findDMAAddy(hProcess, enemyBase, { 0x34 + 0x8,0x0 });
+	ReadProcessMemory(hProcess, (LPVOID)findDMAAddy(hProcess, enemyBase, { 0x34 }), &position[0], sizeof(float), 0);
+	ReadProcessMemory(hProcess, (LPVOID)findDMAAddy(hProcess, enemyBase, { 0x34 + 0x4}), &position[1], sizeof(float), 0);
+	ReadProcessMemory(hProcess, (LPVOID)findDMAAddy(hProcess, enemyBase, { 0x34 + 0x8 }), &position[2], sizeof(float), 0);
 
 }
 
@@ -50,9 +50,9 @@ Player::Player(DWORD procId, uintptr_t moduleBase, HANDLE hProcess) {
 void Player::updatePlayer() {
 	health = findDMAAddy(hprocess, entityAddr, {0xF8, 0x0});
 	armour = findDMAAddy(hprocess, entityAddr, { 0xFC, 0x0 });
-	position[0] = (float)findDMAAddy(hprocess, entityAddr, { 0x34, 0x0 });
-	position[1] = (float)findDMAAddy(hprocess, entityAddr, { 0x34 + 0x4, 0x0 });
-	position[2] = (float)findDMAAddy(hprocess, entityAddr, { 0x34 + 0x8, 0x0 });
+	ReadProcessMemory(hprocess, (LPVOID)findDMAAddy(hprocess, entityAddr, { 0x34 }), &position[0], sizeof(float), 0);
+	ReadProcessMemory(hprocess, (LPVOID)findDMAAddy(hprocess, entityAddr, { 0x34 + 0x4 }), &position[1], sizeof(float), 0);
+	ReadProcessMemory(hprocess, (LPVOID)findDMAAddy(hprocess, entityAddr, { 0x34 + 0x8 }), &position[2], sizeof(float), 0);
 
 }
 

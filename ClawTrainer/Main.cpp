@@ -19,7 +19,8 @@ int main() {
 		Array[i] =  Enemy(hProcess, modBaseAddr, i);
 	}
 
-
+	Array[0].getStats();
+	std::cout << Array[0].position[0] << " " << Array[0].position[1] << std::endl;
 	player.setHealth(501);
 	player.setArmour(69);
 	player.setCurrentWeaponAmmo(69);
@@ -85,11 +86,8 @@ int main() {
 				}
 			}
 			float arr[3];
-			CalcAngle(player.position, Array[0].position, arr);
-			std::cout << smallestdistance << " SMALLEST DISTANCE" << std::endl;
-			//std::cout << Array[0].position[0] << " " << Array[0].position[1] << " " << Array[0].position[2] << std::endl;
-			//player.setViewAngle(arr[0], arr[1]);
-			player.setViewAngle(90, 90);
+			CalcAngle(player.position, Array[2].position, arr);
+			player.setViewAngle(arr[0], arr[1]);
 		}
 	}
 
