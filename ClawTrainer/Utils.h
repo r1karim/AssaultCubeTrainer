@@ -10,7 +10,7 @@
 
 class Enemy {
 private:
-	int id, health; HANDLE hProcess; std::string name;
+	int id, health; HANDLE hProcess; char name;
 	uintptr_t enemyBase; 
 public:
 	float position[3] = { 0,0,0 }; float distance;
@@ -18,7 +18,7 @@ public:
 	Enemy();
 	void getStats();
 	int getHealth();
-	std::string getName();
+	char getName();
 };
 
 class Player {
@@ -41,7 +41,7 @@ public:
 	void setCurrentWeaponAmmo(int);
 	int getPlayerHealth();
 	int getPlayerArmour();
-	void setViewAngle(float x, float y);
+	void setViewAngle(float x, float y, float z);
 };
 
 namespace mem {

@@ -32,7 +32,7 @@ int main() {
 		if (GetAsyncKeyState(VK_NUMPAD1) & 1) {
 			bHealth = !bHealth;
 			if (bHealth) {
-				mem::PatchEx((BYTE*)(modBaseAddr + 0x29D1F), (BYTE*)"\x01", 1, hProcess); //5130944 scan for this value!!!!
+				//mem::PatchEx((BYTE*)(modBaseAddr + 0x29D1F), (BYTE*)"\x01", 1, hProcess); //5130944 scan for this value!!!!
 				std::cout << "Health hack enabled" << std::endl;
 				Array[0].getStats();
 
@@ -76,18 +76,24 @@ int main() {
 		}
 		player.updatePlayer();
 		if (bAimbot) {
-			int smallestdistance;
+			int smallestdistance=0;
 			for (unsigned int i = 0; i < 15; i++) {
 				Array[i].getStats();
-				Array[i].distance = distance3d(player.position, Array[i].position);	
-				//std::cout << Array[i].getHealth() << " " << i << std::endl;
-				if (i == 0 || ( Array[i].distance < Array[smallestdistance].distance && Array[i].getHealth() > 0 && Array[i].getHealth() <= 100)) {
+				if (Array[i].getHealth() <= 0 || Array[i].getHealth() > 100) continue;
+				Array[i].distance = distance3d(Array[i].position, player.position);
+				if (Array[i].distance < Array[smallestdistance].distance && Array[i].getHealth() > 0 && Array[i].getHealth() <= 100) {
 					smallestdistance = i;
 				}
+				//std::cout << i << " " << Array[i].getName() << ": " << "Enemy X: " << Array[i].position[0] << "Enemy Y: " << Array[i].position[1] << "Enemy Z: " << Array[i].position[2] << std::endl;
 			}
+			std::cout << "Player X: " << player.position[0] << "Player Y: " << player.position[1] << "Player Z: " << player.position[2] << std::endl;
+			std::cout << smallestdistance << " " << Array[smallestdistance].getName() << ": " << "Enemy X: " << Array[smallestdistance].position[0] << "Enemy Y: " << Array[smallestdistance].position[1] << "Enemy Z: " << Array[smallestdistance].position[2] << std::endl;
+
 			float arr[3];
-			CalcAngle(player.position, Array[2].position, arr);
-			player.setViewAngle(arr[0], arr[1]);
+			std::cout << Array[smallestdistance].getName() << std::endl;
+			
+			CalcAngle(player.position, Array[smallestdistance].position, arr);
+			player.setViewAngle(arr[0], arr[1], 0);
 		}
 	}
 

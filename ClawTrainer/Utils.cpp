@@ -2,23 +2,21 @@
 
 void Enemy::getStats() {
 	//uintptr_t baseAddr = modBase + 0x10F4F8;
-	char pname[16];
 	//uintptr_t enemyBase = findDMAAddy(hProcess, baseAddr, { 0x10 });
 	health = findDMAAddy(hProcess, enemyBase, {0xF8, 0x0});
-	ReadProcessMemory(hProcess, (LPVOID)findDMAAddy(hProcess, enemyBase, { 0x225,0x0 }) , &pname, 12, NULL); name = pname; //
+	this->name = (char)findDMAAddy(hProcess, enemyBase, { 0x225 , 0x0});
+	//ReadProcessMemory(hProcess, (LPVOID)findDMAAddy(hProcess, enemyBase, { 0x225 }) , &pname, 16, NULL); this->name = *pname; //
 	ReadProcessMemory(hProcess, (LPVOID)findDMAAddy(hProcess, enemyBase, { 0x34 }), &position[0], sizeof(float), 0);
 	ReadProcessMemory(hProcess, (LPVOID)findDMAAddy(hProcess, enemyBase, { 0x34 + 0x4}), &position[1], sizeof(float), 0);
 	ReadProcessMemory(hProcess, (LPVOID)findDMAAddy(hProcess, enemyBase, { 0x34 + 0x8 }), &position[2], sizeof(float), 0);
-
+	
 }
 
 float distance3d(float position1[3], float position2[3]) {
 	return sqrt(pow(double(position1[0] - position2[0]), 2.0) + pow(double(position1[1] - position2[1]), 2.0) + pow(double(position1[2] - position2[2]), 2.0));
 }
 
-Enemy::Enemy() {
-
-}
+Enemy::Enemy() {}
 Enemy::Enemy(HANDLE hProcess, uintptr_t modBase, unsigned int id) {
 	this-> hProcess = hProcess;  this->id = id;
 	int count = 0;
@@ -29,6 +27,7 @@ Enemy::Enemy(HANDLE hProcess, uintptr_t modBase, unsigned int id) {
 		else i = i + 2;
 		count++;
 	}
+
 	enemyBase = findDMAAddy(hProcess, (modBase + 0x10F4F8),{  i });
 }
 
@@ -36,7 +35,7 @@ int Enemy::getHealth() {
 	return this->health;
 }
 
-std::string Enemy::getName() {
+char Enemy::getName() {
 	return this->name;
 }
 
@@ -53,7 +52,6 @@ void Player::updatePlayer() {
 	ReadProcessMemory(hprocess, (LPVOID)findDMAAddy(hprocess, entityAddr, { 0x34 }), &position[0], sizeof(float), 0);
 	ReadProcessMemory(hprocess, (LPVOID)findDMAAddy(hprocess, entityAddr, { 0x34 + 0x4 }), &position[1], sizeof(float), 0);
 	ReadProcessMemory(hprocess, (LPVOID)findDMAAddy(hprocess, entityAddr, { 0x34 + 0x8 }), &position[2], sizeof(float), 0);
-
 }
 
 void Player::setArmour( int value ) {
@@ -74,22 +72,17 @@ void Player::setCurrentWeaponAmmo(int value) {
 	);
 }
 
-void Player::setViewAngle(float x, float y) {
-	WriteProcessMemory(hprocess, (BYTE*)findDMAAddy(hprocess, entityAddr, { 0x40 }),&x,sizeof(x),nullptr);
-	WriteProcessMemory(hprocess, (BYTE*)findDMAAddy(hprocess, entityAddr, { 0x44 }), &x, sizeof(x), nullptr);
-
+void Player::setViewAngle(float x, float y, float z) {
+	WriteProcessMemory(hprocess, (BYTE*)findDMAAddy(hprocess, entityAddr, { 0x40 }),&x,sizeof(x),0);
+	WriteProcessMemory(hprocess, (BYTE*)findDMAAddy(hprocess, entityAddr, { 0x40 + 4 }), &y, sizeof(y), 0);
+	//WriteProcessMemory(hprocess, (BYTE*)findDMAAddy(hprocess, entityAddr, { 0x40 + 0x8 }), &z, sizeof(z), 0);
 }
 
-void CalcAngle(float* src, float* dst, float* angle) {
-	double delta[3] = { (src[0] - dst[0]),(src[1] - dst[1]) ,(src[2] - dst[2]) };
-	double hyp = sqrt(delta[0] * delta[0] + delta[1] * delta[1]);
-	angle[0] = (float)(asinf(delta[2] / hyp) * 57.295779513082f);
-	angle[1] = (float)(atanf(delta[1] / delta[0]) * 57.295779513082f);
-	angle[2] = 0;
-
-	if (delta[0] >= 0.0) {
-		angle[1] += 180.0f;
-	}
+void CalcAngle(float* src, float* dst, float* angle )
+{
+	angle[0] = -atan2f(dst[0] - src[0], dst[1] - src[1]) / 3.14 * 180.0f + 180.0f;
+	angle[1] = asinf((dst[2] - src[2]) / distance3d(src, dst)) * 180.0f / 3.14;
+	angle[2] = 0.0f; 
 }
 
 int Player::getPlayerHealth() { return this->health; }
